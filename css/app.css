@@ -1,0 +1,12 @@
+.color-set {
+    height: 40px;
+    cursor: pointer;
+}
+
+.color-item {
+    /*display: inline-block;*/
+    float: left;
+    height: 100%;
+    padding: 0px;
+    margin: 0px;
+}
