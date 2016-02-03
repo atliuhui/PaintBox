@@ -57,7 +57,7 @@ var EditView = Backbone.View.extend({
         this.setElement(this.template(this.model.toJSON()));
         this.$colors = this.$('[data-cid=colors]');
         
-        var color = new ColorView({ colors: this.model.get('colors'), width: this._app.$edit.width() });
+        var color = new ColorView({ title: this.model.get('title'), colors: this.model.get('colors'), width: this._app.$edit.width() });
         
         this.$colors.html(color.render().el);
 
@@ -83,7 +83,7 @@ var EditView = Backbone.View.extend({
             
             this.$('[data-cid=id]').val(this.model.id);
             
-            var color = new ColorView({ colors: this.model.get('colors'), width: this._app.$edit.width() });
+            var color = new ColorView({ title: this.model.get('title'), colors: this.model.get('colors'), width: this._app.$edit.width() });
             
             this.$colors.html(color.render().el);
         } catch (error) {
@@ -132,7 +132,7 @@ var ListItemView = Backbone.View.extend({
     render: function() {
         this.setElement(this.template(this.model.toJSON()));
 
-        var color = new ColorView({ colors: this.model.get('colors'), width: this._app.$list.width() - 16 - 16 });
+        var color = new ColorView({ title: this.model.get('title'), colors: this.model.get('colors'), width: this._app.$list.width() - 16 - 16 });
         
         this.$el.html(color.render().el);
         
@@ -149,7 +149,7 @@ var ListItemView = Backbone.View.extend({
     }
 });
 var ColorView = Backbone.View.extend({
-    template: Handlebars.compile('<div class="color-set" title="{{title}}"></div>'),
+    template: Handlebars.compile('<div class="color-set" data-toggle="tooltip" data-placement="left" title="{{title}}"></div>'),
     events: {
     },
     initialize: function(options) {
@@ -158,7 +158,7 @@ var ColorView = Backbone.View.extend({
         this._width = options.width;
     },
     render: function() {
-        this.setElement(this.template());
+        this.setElement(this.template({ title: this._title }));
         
         var count = this._colors.length;
         var width = this._width;
@@ -173,6 +173,7 @@ var ColorView = Backbone.View.extend({
         });
         
         this.$el.html(itemCollection.join(''));
+        this.$el.tooltip();
         
         return this;
     }
@@ -186,7 +187,7 @@ var AppView = Backbone.View.extend({
     initialize: function() {
         this.setElement($('body'));
         // this.$create = this.$('#create');
-        // this.$delete = this.$('#delete');
+        this.$delete = this.$('#delete');
         // this.$sample = this.$('#sample');
         this.$edit = this.$('#edit');
         this.$list = this.$('#list');
@@ -199,21 +200,24 @@ var AppView = Backbone.View.extend({
         this.listView = new ListView({collection: this._data.colors, app: this});
     },
     render: function() {
-        // this.$delete.attr('disabled', true);
         this.$list.html(this.listView.render().el);
-        this.edit(new ColorModel());
+        this.create();
         
         return this;
     },
     create: function() {
-        this.edit(new ColorModel());
+        this.$edit.html(this.editView.render(new ColorModel()).el);
+        this.$delete.hide();
     },
     edit: function(model) {
         this.$edit.html(this.editView.render(model).el);
+        this.$delete.show();
     },
     delete: function() {
-        this._data.colors.get(this.editView.model.id).destroy();
-        this.create();
+        if(this.editView.model.id) {
+            this._data.colors.get(this.editView.model.id).destroy();
+            this.create();
+        }
     },
     sample: function() {
         var item = new ColorModel({
